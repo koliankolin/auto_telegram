@@ -47,7 +47,7 @@ class BaseNewsSource(ABC):
         return BeautifulSoup(
             requests.get(
                 url=article_url,
-                headers=self._get_headers()
+                headers=self._get_headers(),
             ).content,
             features='lxml'
         )
