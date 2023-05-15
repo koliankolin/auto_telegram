@@ -36,3 +36,29 @@ class BaseNewsSource(ABC):
     @abstractmethod
     def _map_raw_news(self, raw_news: List[Any]) -> List[News]:
         pass
+
+    @abstractmethod
+    def _get_article_url(self, raw_news: BeautifulSoup) -> str:
+        pass
+
+    def _get_article_soup(self, raw_news: BeautifulSoup) -> BeautifulSoup:
+        article_url = self._get_article_url(raw_news=raw_news)
+        return BeautifulSoup(
+            requests.get(
+                url=article_url,
+                headers=self._get_headers(),
+            ).content,
+            features='lxml'
+        )
+
+    @abstractmethod
+    def _get_title(self, article_soup: BeautifulSoup) -> str:
+        pass
+
+    @abstractmethod
+    def _get_summary(self, article_soup: BeautifulSoup) -> str:
+        pass
+
+    @abstractmethod
+    def _get_image_url(self, article_soup: BeautifulSoup) -> str:
+        pass
