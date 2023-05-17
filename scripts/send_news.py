@@ -1,5 +1,10 @@
 import os
-from telebot import TeleBot, formatting
+import time
+import requests
+
+from telebot import TeleBot
+
+from news_sources.nytimes_news_source import NYTimesNewsSource
 
 
 bot = TeleBot(
@@ -8,11 +13,19 @@ bot = TeleBot(
     disable_web_page_preview=True
 )
 chat_id = os.environ.get("CHANNEL_ID")
+source = NYTimesNewsSource()
 
 
 if __name__ == '__main__':
-    bot.send_photo(
-        chat_id=chat_id,
-        photo=open('/Users/stanislav.gorchakov/Desktop/cat.jpeg', 'rb'),
-        caption=f"{formatting.hbold('Awesome cat')}"
-    )
+    news_to_post = source.get_news()
+    for news in news_to_post:
+        photo = requests.get(news.img_url).content
+        caption = source.construct_message(news=news)
+
+        bot.send_photo(
+            chat_id=chat_id,
+            photo=photo,
+            caption=caption
+        )
+        print(f"News: {caption} was sent")
+        time.sleep(5)

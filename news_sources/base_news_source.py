@@ -4,11 +4,14 @@ from abc import ABC, abstractmethod
 from bs4 import BeautifulSoup
 import requests
 from fake_useragent import FakeUserAgent
+from telebot import formatting
 
 from news_sources.types import News
 
 
 class BaseNewsSource(ABC):
+    SOURCE = ''
+
     def __init__(self, url: str):
         self.parsed_source = BeautifulSoup(
             requests.get(
@@ -21,6 +24,9 @@ class BaseNewsSource(ABC):
     def get_news(self) -> List[News]:
         raw_news = self._get_raw_today_news()
         return self._map_raw_news(raw_news=raw_news)
+
+    def construct_message(self, news: News) -> str:
+        return f"{formatting.hbold(news.title)}\n\n{news.summary}\n\nSource: {self.SOURCE}"
 
     @staticmethod
     def _get_headers() -> Dict[str, str]:
