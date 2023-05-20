@@ -44,4 +44,4 @@ class NYTimesNewsSource(BaseNewsSource):
         return article_soup.find(name='p', attrs={'id': 'article-summary'}).text
 
     def _get_image_url(self, article_soup: BeautifulSoup) -> str:
-        return article_soup.find(name='img').attrs['srcset'].split(',')[-1].split('?')[0]
+        return article_soup.find(name='img').attrs['srcset'].split(',')[-2].split('?')[0]
