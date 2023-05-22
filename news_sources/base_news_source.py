@@ -15,6 +15,7 @@ from news_sources.types import News, NewsColorsAndFonts
 
 class BaseNewsSource(ABC):
     SOURCE = ''
+    HASHTAG = ''
 
     def __init__(self, url: str):
         self.parsed_source = BeautifulSoup(
@@ -28,6 +29,12 @@ class BaseNewsSource(ABC):
     def get_news(self) -> List[News]:
         raw_news = self._get_raw_today_news()
         return self._map_raw_news(raw_news=raw_news)
+
+    def construct_caption(self, news: News) -> str:
+        return f"{news.summary}\n\n{self._get_footer()}"
+
+    def _get_footer(self) -> str:
+        return f"#{self.HASHTAG} | {formatting.hlink('INTERESTING NEWS', 'https://t.me/+V3JQF4Q23u84MGU0')}"
 
     @staticmethod
     def _get_headers() -> Dict[str, str]:

@@ -10,6 +10,7 @@ from news_sources.types import NYTimesNews
 class NYTimesNewsSource(BaseNewsSource):
     SOURCE_MAIN_URL = 'https://www.nytimes.com/'
     SOURCE = 'New York Times'
+    HASHTAG = 'World'
 
     def __init__(self):
         super().__init__(url='https://www.nytimes.com/section/world')
