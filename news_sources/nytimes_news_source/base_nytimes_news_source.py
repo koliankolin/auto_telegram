@@ -7,13 +7,9 @@ from news_sources.base_news_source import BaseNewsSource
 from news_sources.types import NYTimesNews
 
 
-class NYTimesNewsSource(BaseNewsSource):
+class BaseNYTimesNewsSource(BaseNewsSource):
     SOURCE_MAIN_URL = 'https://www.nytimes.com/'
     SOURCE = 'New York Times'
-    HASHTAG = 'World'
-
-    def __init__(self):
-        super().__init__(url='https://www.nytimes.com/section/world')
 
     def _get_raw_today_news(self) -> List[Any]:
         return self.parsed_source.find_all(name='div', attrs={'class': 'css-1cp3ece'})
