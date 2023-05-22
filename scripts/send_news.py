@@ -1,9 +1,12 @@
 import os
 from telebot import TeleBot
 import time
+from random import choice
+import logging
 
-from news_sources.nytimes_news_source import NYTimesNewsSource
+from news_sources import WorldNYTimesNewsSource, USANYTimesNewsSource
 
+logging.basicConfig(level=logging.INFO)
 
 bot = TeleBot(
     token=os.environ.get("BOT_TOKEN"),
@@ -11,13 +14,20 @@ bot = TeleBot(
     disable_web_page_preview=True
 )
 chat_id = os.environ.get("CHANNEL_ID")
-source = NYTimesNewsSource()
+sources = [
+    WorldNYTimesNewsSource(),
+    USANYTimesNewsSource()
+]
+news_to_post = int(os.environ.get("NEWS_TO_POST") or 3)
 
 
 if __name__ == '__main__':
-    news_to_post = source.get_news()
+    logging.info(f"News to post: {news_to_post}")
 
-    for news in news_to_post:
+    while news_to_post:
+        source = choice(sources)
+
+        news = source.get_one_news()
         photo = source.create_mem_from_photo(news=news)
         caption = source.construct_caption(news=news)
 
@@ -26,6 +36,7 @@ if __name__ == '__main__':
             photo=open(photo, 'rb'),
             caption=caption
         )
-        print(f"News {news.title} was sent")
+        logging.info(f"News {news.title} was sent")
         photo.unlink()
         time.sleep(5)
+        news_to_post -= 1

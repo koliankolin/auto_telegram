@@ -1,4 +1,4 @@
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Optional
 from datetime import date
 from abc import ABC, abstractmethod
 from pathlib import Path
@@ -29,6 +29,13 @@ class BaseNewsSource(ABC):
     def get_news(self) -> List[News]:
         raw_news = self._get_raw_today_news()
         return self._map_raw_news(raw_news=raw_news)
+
+    def get_one_news(self) -> Optional[News]:
+        all_news = self.get_news()
+
+        for one_news in all_news:
+            return one_news
+        return None
 
     def construct_caption(self, news: News) -> str:
         return f"{news.summary}\n\n{self._get_footer()}"
