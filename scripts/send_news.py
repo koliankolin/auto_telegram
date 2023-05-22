@@ -4,7 +4,6 @@ import time
 
 from news_sources.nytimes_news_source import NYTimesNewsSource
 
-
 bot = TeleBot(
     token=os.environ.get("BOT_TOKEN"),
     parse_mode='html',
@@ -19,11 +18,12 @@ if __name__ == '__main__':
 
     for news in news_to_post:
         photo = source.create_mem_from_photo(news=news)
+        caption = source.construct_caption(news=news)
 
         bot.send_photo(
             chat_id=chat_id,
             photo=open(photo, 'rb'),
-            caption=news.summary
+            caption=caption
         )
         print(f"News {news.title} was sent")
         photo.unlink()
