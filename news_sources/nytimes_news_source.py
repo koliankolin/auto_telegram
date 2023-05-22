@@ -1,3 +1,4 @@
+from datetime import date
 from typing import List, Any
 
 from bs4 import BeautifulSoup
@@ -19,8 +20,11 @@ class NYTimesNewsSource(BaseNewsSource):
     def _map_raw_news(self, raw_news: List[Any]) -> List[NYTimesNews]:
         result = []
         for raw_one_news in raw_news:
-            article_soup = self._get_article_soup(raw_news=raw_one_news)
             try:
+                if not self._is_fresh_article(raw_news=raw_one_news):
+                    break
+
+                article_soup = self._get_article_soup(raw_news=raw_one_news)
                 result.append(
                     NYTimesNews(
                         title=self._get_title(article_soup),
@@ -34,8 +38,18 @@ class NYTimesNewsSource(BaseNewsSource):
         return result
 
     def _get_article_url(self, raw_news: BeautifulSoup) -> str:
-        url_end = raw_news.find(name='a').attrs['href']
+        url_end = self._get_article_end_url(raw_news=raw_news)
         return f"{self.SOURCE_MAIN_URL}{url_end}"
+
+    @staticmethod
+    def _get_article_end_url(raw_news: BeautifulSoup) -> str:
+        return raw_news.find(name='a').attrs['href']
+
+    def _get_article_date(self, raw_news: BeautifulSoup) -> date:
+        article_end_url = self._get_article_end_url(raw_news=raw_news)
+        end_url_date_parts = article_end_url.split('/')[:4]
+
+        return date(*[int(part) for part in end_url_date_parts if part])
 
     def _get_title(self, article_soup: BeautifulSoup) -> str:
         return article_soup.find(name='h1').text
