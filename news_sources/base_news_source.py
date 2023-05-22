@@ -1,4 +1,5 @@
 from typing import Dict, List, Tuple
+from datetime import date
 from abc import ABC, abstractmethod
 from pathlib import Path
 import textwrap
@@ -47,6 +48,16 @@ class BaseNewsSource(ABC):
     @abstractmethod
     def _get_article_url(self, raw_news: BeautifulSoup) -> str:
         pass
+
+    @abstractmethod
+    def _get_article_date(self, raw_news: BeautifulSoup) -> date:
+        pass
+
+    def _is_fresh_article(self, raw_news: BeautifulSoup) -> bool:
+        today = date.today()
+        article_date = self._get_article_date(raw_news=raw_news)
+
+        return today == article_date
 
     def _get_article_soup(self, raw_news: BeautifulSoup) -> BeautifulSoup:
         article_url = self._get_article_url(raw_news=raw_news)
