@@ -4,6 +4,7 @@ from datetime import date
 from abc import ABC, abstractmethod
 from pathlib import Path
 import textwrap
+from copy import deepcopy
 
 from bs4 import BeautifulSoup
 import requests
@@ -15,6 +16,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 
 from storages.news_storage import NewsStorage
 from news_sources.types import News, NewsColorsAndFonts
+from rewriters.chat_gpt_rewriter import ChatGPTRewriter
 
 
 class BaseNewsSource(ABC):
@@ -43,11 +45,24 @@ class BaseNewsSource(ABC):
                 continue
 
             storage.store_element(element=one_news)
-            return one_news
+            return self._rewrite_news(one_news=one_news)
         return None
 
     def construct_caption(self, news: News) -> str:
         return f"{news.summary}\n\n{self._get_footer()}"
+
+    @staticmethod
+    def _rewrite_news(one_news: News) -> News:
+        copy_one_news = deepcopy(one_news)
+        rewriter = ChatGPTRewriter()
+
+        new_title = rewriter.rewrite_title(text=one_news.title)
+        new_summary = rewriter.rewrite_summary(text=one_news.summary)
+
+        copy_one_news.title = new_title
+        copy_one_news.summary = new_summary
+
+        return copy_one_news
 
     def _get_footer(self) -> str:
         return f"#{self.HASHTAG} | {formatting.hlink('INTERESTING NEWS', 'https://t.me/+V3JQF4Q23u84MGU0')}"
