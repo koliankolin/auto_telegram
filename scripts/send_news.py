@@ -28,6 +28,9 @@ if __name__ == '__main__':
         source = choice(sources)
 
         news = source.get_one_news()
+        if not news:
+            continue
+
         photo = source.create_mem_from_photo(news=news)
         caption = source.construct_caption(news=news)
 

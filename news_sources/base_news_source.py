@@ -1,3 +1,4 @@
+import os
 from typing import Dict, List, Tuple, Optional
 from datetime import date
 from abc import ABC, abstractmethod
@@ -9,7 +10,10 @@ import requests
 from fake_useragent import FakeUserAgent
 from telebot import formatting
 from PIL import Image, ImageDraw, ImageFont
+from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.feature_extraction.text import TfidfVectorizer
 
+from storages.news_storage import NewsStorage
 from news_sources.types import News, NewsColorsAndFonts
 
 
@@ -32,8 +36,12 @@ class BaseNewsSource(ABC):
 
     def get_one_news(self) -> Optional[News]:
         all_news = self.get_news()
+        storage = NewsStorage()
 
         for one_news in all_news:
+            if storage.exists_element(element=one_news) or self._is_duplicated_news(one_news=one_news):
+                continue
+
             return one_news
         return None
 
@@ -213,3 +221,28 @@ class BaseNewsSource(ABC):
         total_height += info_height
 
         return total_height, wrapped_text, padding
+
+    @staticmethod
+    def _is_duplicated_news(one_news: News) -> bool:
+        storage = NewsStorage()
+        storage_news = list(storage.get_data().keys())
+        if not storage_news:
+            return False
+
+        corpus = [
+            f"{one_news.title} {one_news.summary}"
+            for one_news in storage_news[-35:]
+            if isinstance(one_news, News)
+        ]
+        corpus.append(f"{one_news.title} {one_news.summary}")
+        # Initialize an instance of tf-idf Vectorizer
+        tfidf_vectorizer = TfidfVectorizer()
+
+        # Generate the tf-idf vectors for the corpus
+        tfidf_matrix = tfidf_vectorizer.fit_transform(corpus)
+
+        # compute and print the cosine similarity matrix
+        cosine_sim_values = cosine_similarity(tfidf_matrix, tfidf_matrix)[-1][:-1]
+
+        threshold = float(os.environ.get('DEDUPLICATION_THRESHOLD') or 0.3)
+        return any([cosine_sim_value for cosine_sim_value in cosine_sim_values if cosine_sim_value > threshold])
