@@ -1,0 +1,24 @@
+image: alpine
+
+stages:
+  - deploy
+
+deploy:
+  stage: deploy
+  only:
+    refs:
+      - main
+  before_script:
+    - apk update && apk upgrade
+    - apk add curl
+    - apk add sshpass
+    - apk add --no-cache openssh
+  script:
+    - sshpass -V
+    - sshpass -h
+    - export SSHPASS=$SSH_PASSWORD
+    - sshpass -e scp -o StrictHostKeyChecking=no -r ./* $USER_NAME@$IP_SERVER:/$USER_NAME/opt/auto_telegram
+    - sshpass -e ssh -o StrictHostKeyChecking=no $USER_NAME@$IP_SERVER $PIP_INSTALL_COMMAND
+
+variables:
+  PIP_INSTALL_COMMAND: 'apt-get update -y && apt-get upgrade -y && apt-get install python3-pip -y && pip install -r /${USER_NAME}/opt/auto_telegram/requirements.txt'
